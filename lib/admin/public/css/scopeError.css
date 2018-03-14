@@ -1,0 +1,39 @@
+
+body
+{
+    background-color: rgb(240, 240, 240);
+    color: rgb(50, 50, 50);
+    font-family: Helvetica,Arial,Tahoma,Verdana,sans-serif;
+}
+
+.scopeErrorContainer
+{
+     margin: 100px auto 0;
+     border: 1px solid rgb(200, 200, 200);
+     background-color: white;
+     padding: 20px;
+     display: table;
+}
+
+.scopeErrorLabel
+{
+    text-align: center;
+    font-size: 22px;
+}
+
+.buttonContainer
+{
+    text-align: center;
+}
+
+button
+{
+    cursor: pointer;
+}
+
+.errorMessage
+{
+    text-align: center;
+    font-size: 16px;
+    color: rgb(180, 0, 0);
+}
