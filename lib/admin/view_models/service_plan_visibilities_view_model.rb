@@ -1,5 +1,4 @@
 require 'date'
-require 'thread'
 require_relative 'base_view_model'
 
 module AdminUI
@@ -7,7 +6,7 @@ module AdminUI
     def do_items
       service_plan_visibilities = @cc.service_plan_visibilities
 
-      # service_plan_visibilities have to exist.  Other record types are optional
+      # service_plan_visibilities have to exist. Other record types are optional
       return result unless service_plan_visibilities['connected']
 
       events           = @cc.events

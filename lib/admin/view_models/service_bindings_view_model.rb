@@ -1,5 +1,4 @@
 require 'date'
-require 'thread'
 require_relative 'base_view_model'
 
 module AdminUI
@@ -7,7 +6,7 @@ module AdminUI
     def do_items
       service_bindings = @cc.service_bindings
 
-      # service_bindings have to exist.  Other record types are optional
+      # service_bindings have to exist. Other record types are optional
       return result unless service_bindings['connected']
 
       applications      = @cc.applications
@@ -62,6 +61,7 @@ module AdminUI
         row = []
 
         row.push(guid)
+        row.push(service_binding[:name])
         row.push(guid)
         row.push(service_binding[:created_at].to_datetime.rfc3339)
 
@@ -174,7 +174,7 @@ module AdminUI
           }
       end
 
-      result(true, items, hash, (1..31).to_a, (1..31).to_a - [6])
+      result(true, items, hash, (1..32).to_a, (1..32).to_a - [7])
     end
   end
 end

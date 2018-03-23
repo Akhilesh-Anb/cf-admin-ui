@@ -1,5 +1,4 @@
 require 'date'
-require 'thread'
 require 'yajl'
 require_relative 'base_view_model'
 
@@ -8,7 +7,7 @@ module AdminUI
     def do_items
       services = @cc.services
 
-      # services have to exist.  Other record types are optional
+      # services have to exist. Other record types are optional
       return result unless services['connected']
 
       events                    = @cc.events
@@ -16,6 +15,7 @@ module AdminUI
       service_bindings          = @cc.service_bindings
       service_brokers           = @cc.service_brokers
       service_instances         = @cc.service_instances
+      service_instance_shares   = @cc.service_instance_shares
       service_keys              = @cc.service_keys
       service_plans             = @cc.service_plans
       service_plan_visibilities = @cc.service_plan_visibilities
@@ -24,6 +24,7 @@ module AdminUI
       route_bindings_connected            = route_bindings['connected']
       service_bindings_connected          = service_bindings['connected']
       service_instances_connected         = service_instances['connected']
+      service_instance_shares_connected   = service_instance_shares['connected']
       service_keys_connected              = service_keys['connected']
       service_plans_connected             = service_plans['connected']
       service_plan_visibilities_connected = service_plan_visibilities['connected']
@@ -85,6 +86,24 @@ module AdminUI
         service_id = service_plan[:service_id]
         service_instance_counters[service_id] = 0 if service_instance_counters[service_id].nil?
         service_instance_counters[service_id] += 1
+      end
+
+      service_instance_share_counters = {}
+      service_instance_shares['items'].each do |service_instance_share|
+        return result unless @running
+        Thread.pass
+
+        service_instance_guid = service_instance_share[:service_instance_guid]
+        next if service_instance_guid.nil?
+        service_instance = service_instance_guid_hash[service_instance_guid]
+        next if service_instance.nil?
+        service_plan_id = service_instance[:service_plan_id]
+        next if service_plan_id.nil?
+        service_plan = service_plan_hash[service_plan_id]
+        next if service_plan.nil?
+        service_id = service_plan[:service_id]
+        service_instance_share_counters[service_id] = 0 if service_instance_share_counters[service_id].nil?
+        service_instance_share_counters[service_id] += 1
       end
 
       service_binding_counters = {}
@@ -156,6 +175,7 @@ module AdminUI
         route_binding_counter              = route_binding_counters[id]
         service_binding_counter            = service_binding_counters[id]
         service_instance_counter           = service_instance_counters[id]
+        service_instance_share_counter     = service_instance_share_counters[id]
         service_key_counter                = service_key_counters[id]
         service_plan_counter               = service_plan_counters[id]
         service_plan_public_active_counter = service_plan_public_active_counters[id]
@@ -177,22 +197,32 @@ module AdminUI
 
         row.push(service[:bindable])
         row.push(service[:plan_updateable])
-        row.push(service[:active])
+        row.push(service[:instances_retrievable])
+        row.push(service[:bindings_retrievable])
 
+        shareable             = nil
         provider_display_name = nil
         display_name          = nil
         if service[:extra]
           begin
             json = Yajl::Parser.parse(service[:extra])
 
+            shareable             = json['shareable']
             provider_display_name = json['providerDisplayName']
             display_name          = json['displayName']
+
+            shareable = false if shareable.nil?
           rescue
+            shareable             = nil
             provider_display_name = nil
             display_name          = nil
           end
         end
-        row.push(provider_display_name, display_name)
+
+        row.push(shareable)
+        row.push(service[:active])
+        row.push(provider_display_name)
+        row.push(display_name)
 
         requires = nil
         if service[:requires]
@@ -249,6 +279,14 @@ module AdminUI
           row.push(nil)
         end
 
+        if service_instance_share_counter
+          row.push(service_instance_share_counter)
+        elsif service_instance_shares_connected && service_instances_connected && service_plans_connected
+          row.push(0)
+        else
+          row.push(nil)
+        end
+
         if service_binding_counter
           row.push(service_binding_counter)
         elsif service_bindings_connected && service_instances_connected && service_plans_connected
@@ -296,7 +334,7 @@ module AdminUI
           }
       end
 
-      result(true, items, hash, (1..23).to_a, (1..23).to_a - [12, 13, 14, 15, 16, 17, 18, 19])
+      result(true, items, hash, (1..27).to_a, (1..27).to_a - [15, 16, 17, 18, 19, 20, 21, 22, 23])
     end
   end
 end
