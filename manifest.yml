@@ -2,5 +2,5 @@ name: admin-ui
 command: ./admin-ui-configurer
 buildpack: https://github.com/cloudfoundry/ruby-buildpack#v1.6.47
 services:
-- admin-ui-config
-- admin-ui-mysql
+  - admin-ui-config
+  - admin-ui-mysql
